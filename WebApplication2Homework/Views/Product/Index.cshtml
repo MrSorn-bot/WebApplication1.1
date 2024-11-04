@@ -1,0 +1,63 @@
+﻿<h1>Product List</h1>
+
+<p>
+    <a class="btn btn-primary" asp-action="UpCreate">Create New</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>หมวดหมู่</th>
+            <th>รูปภาพ</th>
+            <th>ชื่อผลิตภัณฑ์</th>
+            <th>ราคา</th>
+            <th>จำนวน</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var group in Model)
+        {
+            bool isFirstRow = true; // ตัวแปรสำหรับเช็คว่าเป็นแถวแรกของกลุ่มหรือไม่
+            foreach (var product in group.Products)
+            {
+                <tr>
+                    @if (isFirstRow)
+                    {
+                        <td rowspan="@group.Products.Count">
+                            @group.CategoryName <br />
+                            <small>จำนวนผลิตภัณฑ์: @group.Products.Count</small>
+                        </td>
+                        isFirstRow = false;
+                    }
+
+                    <td>
+                        @if (product.Image != null && product.Image.Count > 0)
+                        {
+                            foreach (var img in product.Image)
+                            {
+                                if (!string.IsNullOrEmpty(img))
+                                {
+                                    <img src="@Url.Content(img)" alt="Product Image" style="width: 100px; height: auto; margin-right: 5px;" />
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <span>No Image</span>
+                        }
+                    </td>
+
+                    <td>@product.Name</td>
+                    <td>@product.Price</td>
+                    <td>@product.Amount</td>
+                    <td>
+                        <a class="btn btn-warning" asp-action="UpCreate" asp-route-id="@product.Id">Edit</a> |
+                        <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@product.Id"
+                           onclick="return confirm('ยืนยันการลบ')">Delete</a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
