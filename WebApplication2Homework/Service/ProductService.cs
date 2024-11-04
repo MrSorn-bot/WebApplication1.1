@@ -67,20 +67,31 @@ public class ProductService : IProductService
 
     public void UpdateData(Product product, IFormFileCollection files)
     {
-        // Check if new files are uploaded
+        string wwwRootPath = webEnv.WebRootPath;
+        var uploads = Path.Combine(wwwRootPath, "images");
+
+        if (!Directory.Exists(uploads))
+            Directory.CreateDirectory(uploads);
+
+        var existingProduct = db.Products.Include(p => p.category).FirstOrDefault(p => p.Id == product.Id);
+        if (existingProduct == null)
+        {
+            throw new InvalidOperationException("ไม่พบผลิตภัณฑ์.");
+        }
+
         if (files != null && files.Count > 0)
         {
-            string wwwRootPath = webEnv.WebRootPath;
-            var uploads = Path.Combine(wwwRootPath, "images");
+            foreach (var oldImagePath in existingProduct.Image)
+            {
+                var oldImageFullPath = Path.Combine(wwwRootPath, oldImagePath.TrimStart('\\'));
+                if (File.Exists(oldImageFullPath))
+                {
+                    File.Delete(oldImageFullPath);
+                }
+            }
 
-            // Ensure the uploads directory exists
-            if (!Directory.Exists(uploads))
-                Directory.CreateDirectory(uploads);
+            existingProduct.Image.Clear();
 
-            // Clear existing images if necessary
-            product.Image.Clear();
-
-            // Loop through each file in the collection
             foreach (var file in files)
             {
                 if (file.Length > 0)
@@ -88,22 +99,23 @@ public class ProductService : IProductService
                     string fileName = Guid.NewGuid().ToString();
                     var extension = Path.GetExtension(file.FileName);
 
-                    // Save the new file
                     using (var fileStreams = new FileStream(Path.Combine(uploads, fileName + extension), FileMode.Create))
                     {
                         file.CopyTo(fileStreams);
                     }
 
-                    // Add the new image path
-                    product.Image.Add(@"\images\" + fileName + extension);
+                    existingProduct.Image.Add(@"\images\" + fileName + extension);
                 }
             }
         }
 
-        // Update the product in the database
-        db.Products.Update(product);
+        existingProduct.Name = product.Name; // ตัวอย่างคุณสมบัติ
+        existingProduct.Price = product.Price; // ตัวอย่างคุณสมบัติ
+                                               // เพิ่มคุณสมบัติอื่น ๆ ตามที่ต้องการ...
+
         db.SaveChanges();
     }
+
 
 
 
@@ -113,6 +125,18 @@ public class ProductService : IProductService
 
         if (product != null)
         {
+            // Delete images associated with the product from the file system
+            string wwwRootPath = webEnv.WebRootPath;
+            foreach (var imagePath in product.Image)
+            {
+                var fullImagePath = Path.Combine(wwwRootPath, imagePath.TrimStart('\\'));
+                if (File.Exists(fullImagePath))
+                {
+                    File.Delete(fullImagePath);
+                }
+            }
+
+            // Remove the product from the database
             db.Products.Remove(product);
             db.SaveChanges();
         }

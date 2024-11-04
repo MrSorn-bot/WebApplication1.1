@@ -49,16 +49,16 @@ namespace WebApplication2Homework._1.Controllers
         }
 
         [HttpPost]
-        [HttpPost]
         public IActionResult UpCreate(Product product, IFormFileCollection files)
         {
-            if (product.Id > 0)
+            if (product.Id == 0)
             {
+                ns.AddData(product, files);
                 // Logic for updating the product if necessary
             }
             else
             {
-                ns.AddData(product, files); // ส่งไฟล์หลายไฟล์ไปยัง AddData
+                ns.UpdateData(product, files); // ส่งไฟล์หลายไฟล์ไปยัง AddData
             }
             return RedirectToAction("Index");
         }

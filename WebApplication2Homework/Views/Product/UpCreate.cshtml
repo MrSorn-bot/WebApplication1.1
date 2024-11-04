@@ -41,12 +41,9 @@
             </div>
             <div class="form-group">
                 <label asp-for="Product.Image" class="control-label"></label>
-                <input type="file" id="uploadBox" multiple name="files" class="form-control"
-                       onchange="loadFile(event)" />
-
+                <input type="file" id="uploadBox" multiple name="files" class="form-control" onchange="loadFiles(event)" />
+                <div id="output" style="display: flex; flex-wrap: wrap;"></div>
             </div>
-
-         
 
             <div class="form-group" id="imagePreview"></div>
 
@@ -91,5 +88,25 @@
                 reader.readAsDataURL(file); // อ่านไฟล์เป็น Data URL
             });
         };
+    </script>
+    <script>
+        function loadFiles(event) {
+            const output = document.getElementById('output');
+            output.innerHTML = ''; // เคลียร์ผลลัพธ์ก่อนหน้า
+            const files = event.target.files;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.width = 200; // กำหนดขนาดของรูป
+                    img.style.margin = '10px'; // กำหนดระยะห่างระหว่างรูป
+                    output.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
     </script>
 }
